@@ -1,4 +1,5 @@
 import streamlit as st
+import extra_streamlit_components as stx
 from utils.api import login, get_users, ml_status
 from utils.styles import inject_styles
 
@@ -9,6 +10,20 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 inject_styles()
+
+# ── Cookie manager (persists token across refreshes) ───────────────────────────
+@st.cache_resource
+def get_cookie_manager():
+    return stx.CookieManager(key="gp_admin_cookies")
+
+cookie_mgr = get_cookie_manager()
+
+# Restore session from cookie if not already in session_state
+if "token" not in st.session_state:
+    saved_token = cookie_mgr.get("gp_admin_token")
+    if saved_token:
+        st.session_state.token = saved_token
+        st.session_state.admin_email = cookie_mgr.get("gp_admin_email") or ""
 
 # ── Auth gate ──────────────────────────────────────────────────────────────────
 if "token" not in st.session_state:
@@ -36,8 +51,14 @@ if "token" not in st.session_state:
             else:
                 try:
                     result = login(email, password)
-                    st.session_state.token = result["access_token"]
+                    token = result["access_token"]
+                    st.session_state.token = token
                     st.session_state.admin_email = email
+                    # Persist to cookie (7-day expiry)
+                    from datetime import datetime, timedelta
+                    exp = datetime.now() + timedelta(days=7)
+                    cookie_mgr.set("gp_admin_token", token, expires_at=exp)
+                    cookie_mgr.set("gp_admin_email", email, expires_at=exp)
                     st.rerun()
                 except Exception as _e:
                     st.error(f"Login failed: {_e}")
@@ -49,6 +70,8 @@ with st.sidebar:
     st.caption(f"Signed in as `{st.session_state.get('admin_email', '')}`")
     st.divider()
     if st.button("Sign Out", use_container_width=True):
+        cookie_mgr.delete("gp_admin_token")
+        cookie_mgr.delete("gp_admin_email")
         for key in list(st.session_state.keys()):
             del st.session_state[key]
         st.rerun()
