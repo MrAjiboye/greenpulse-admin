@@ -12,11 +12,7 @@ st.set_page_config(
 inject_styles()
 
 # ── Cookie manager (persists token across refreshes) ───────────────────────────
-@st.cache_resource
-def get_cookie_manager():
-    return stx.CookieManager(key="gp_admin_cookies")
-
-cookie_mgr = get_cookie_manager()
+cookie_mgr = stx.CookieManager(key="gp_admin_cookies")
 
 # Restore session from cookie if not already in session_state
 if "token" not in st.session_state:
