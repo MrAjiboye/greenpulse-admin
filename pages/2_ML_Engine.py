@@ -38,7 +38,7 @@ tabs = st.tabs(["Status & Train", "Anomaly Detection", "Forecast", "Data Ingesti
 _orgs_ml = []
 _orgs_ml_error = None
 try:
-    _orgs_ml_resp = requests.get(f"{BASE_URL}/admin/organizations?limit=200", headers=_headers(), timeout=10)
+    _orgs_ml_resp = requests.get(f"{BASE_URL}/admin/organizations?limit=100", headers=_headers(), timeout=10)
     _orgs_ml_resp.raise_for_status()
     _orgs_ml = _orgs_ml_resp.json().get("items", [])
 except Exception as _e:
