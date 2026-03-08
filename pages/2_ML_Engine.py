@@ -35,17 +35,21 @@ st.title("🤖 ML Engine")
 tabs = st.tabs(["Status & Train", "Anomaly Detection", "Forecast", "Data Ingestion", "Cloud Config"])
 
 # ── Shared organisation selector (used by Train, Anomaly, Forecast tabs) ──────
+_orgs_ml = []
+_orgs_ml_error = None
 try:
     _orgs_ml_resp = requests.get(f"{BASE_URL}/admin/organizations?limit=200", headers=_headers(), timeout=10)
     _orgs_ml_resp.raise_for_status()
     _orgs_ml = _orgs_ml_resp.json().get("items", [])
-except Exception:
-    _orgs_ml = []
+except Exception as _e:
+    _orgs_ml_error = str(_e)
 
 _ml_org_options = ["All organisations"] + [f"{o['name']} (id={o['id']})" for o in _orgs_ml]
 _ml_org_map = {f"{o['name']} (id={o['id']})": o["id"] for o in _orgs_ml}
 
 st.markdown("### Organisation Scope")
+if _orgs_ml_error:
+    st.error(f"Could not load organisations: {_orgs_ml_error}")
 _sel_ml_org_label = st.selectbox(
     "Run ML operations for",
     _ml_org_options,
