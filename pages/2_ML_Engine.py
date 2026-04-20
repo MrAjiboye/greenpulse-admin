@@ -74,7 +74,8 @@ with tabs[0]:
         refresh = st.button("↻ Refresh")
 
     try:
-        status_data = api_get("/admin/ml/status")
+        _status_qs = f"?organization_id={_sel_ml_org_id}" if _sel_ml_org_id else ""
+        status_data = api_get(f"/admin/ml/status{_status_qs}")
         if status_data.get("trained"):
             c1, c2, c3, c4 = st.columns(4)
             c1.success("✅ Trained")

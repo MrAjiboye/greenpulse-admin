@@ -81,9 +81,9 @@ try:
     users = users_data.get("items", [])
     total = users_data.get("total", 0)
     active = sum(1 for u in users if u.get("is_active"))
-    admins = sum(1 for u in users if u.get("role") == "admin")
-    managers = sum(1 for u in users if u.get("role") == "manager")
-    viewers = sum(1 for u in users if u.get("role") == "viewer")
+    admins = sum(1 for u in users if (u.get("role") or "").upper() == "ADMIN")
+    managers = sum(1 for u in users if (u.get("role") or "").upper() == "MANAGER")
+    viewers = sum(1 for u in users if (u.get("role") or "").upper() == "VIEWER")
 
     c1, c2, c3, c4, c5 = st.columns(5)
     c1.metric("Total Users", total)
@@ -98,16 +98,4 @@ st.divider()
 
 # ML status
 st.subheader("ML Engine")
-try:
-    status = ml_status()
-    if status.get("trained"):
-        c1, c2, c3 = st.columns(3)
-        c1.success("✅ Model trained and ready")
-        c2.metric("Training samples", status.get("n_samples", "—"))
-        trained_at = status.get("trained_at", "")[:19].replace("T", " ")
-        c3.metric("Last trained", trained_at)
-        st.caption(f"Features: {', '.join(status.get('features', []))}")
-    else:
-        st.warning("⚠️ No model trained yet — go to the **ML Engine** page to train.")
-except Exception as e:
-    st.error(f"Could not reach ML endpoint: {e}")
+st.info("ML models are now per-organisation. Use the **ML Engine** page to check or train a specific organisation's model.")
